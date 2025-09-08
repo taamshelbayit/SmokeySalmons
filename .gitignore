@@ -1,0 +1,41 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Build output / coverage
+dist/
+coverage/
+
+# Next.js
+.next/
+out/
+.vercel/
+
+# Environment files
+.env
+.env*.local
+!.env.example
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# Prisma local databases (keep migrations)
+prisma/*.db
+prisma/*.db-journal
+
+# IDE/editor
+.vscode/
+
+# TypeScript
+*.tsbuildinfo

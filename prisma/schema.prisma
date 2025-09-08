@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String?
+  email           String?  @unique
+  phone           String?
+  loyaltyPoints   Int      @default(0)
+  marketingOptIn  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  orders          Order[]
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model AdminUser {
+  id    String  @id @default(cuid())
+  email String  @unique
+  role  String @default("ADMIN")
+}
+
+model Product {
+  id            String  @id @default(cuid())
+  slug          String  @unique
+  name          String
+  description   String?
+  active        Boolean @default(true)
+  basePrice     Decimal
+  isMarketPrice Boolean @default(false)
+  flavors       ProductFlavor[]
+  orderItems    OrderItem[]
+}
+
+model Flavor {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  active      Boolean @default(true)
+  products    ProductFlavor[]
+  orderItems  OrderItem[]
+}
+
+model ProductFlavor {
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  flavor    Flavor  @relation(fields: [flavorId], references: [id])
+  flavorId  String
+  allowed   Boolean @default(true)
+
+  @@id([productId, flavorId])
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  code          String        @unique
+  user          User?         @relation(fields: [userId], references: [id])
+  userId        String?
+  status        String        @default("PLACED")
+  placedAt      DateTime      @default(now())
+  deliveryDate  DateTime?
+  deliverySlot  String?
+  method        String        @default("DELIVERY")
+  subtotal      Decimal
+  discount      Decimal       @default(0)
+  total         Decimal
+  notes         String?
+
+  // Contact & address at time of order
+  contactName   String
+  contactPhone  String
+  contactEmail  String?
+  city          String?
+  street        String?
+  apt           String?
+  deliveryNotes String?
+
+  items         OrderItem[]
+
+  @@index([status, placedAt])
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  order      Order   @relation(fields: [orderId], references: [id])
+  orderId    String
+  product    Product @relation(fields: [productId], references: [id])
+  productId  String
+  flavor     Flavor? @relation(fields: [flavorId], references: [id])
+  flavorId   String?
+  quantity   Int
+  unitPrice  Decimal
+  meta       String?
+  allocations CutAllocation[]
+}
+
+model CutAllocation {
+  id          String      @id @default(cuid())
+  orderItem   OrderItem   @relation(fields: [orderItemId], references: [id])
+  orderItemId String
+  quarter     String
+  assignedBy  String      // system or admin user id/email
+  note        String?
+}
+
+model Promotion {
+  id        String         @id @default(cuid())
+  code      String         @unique
+  type      String
+  value     Decimal
+  startsAt  DateTime?
+  endsAt    DateTime?
+  active    Boolean        @default(false)
+}
+
+model Newsletter {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  verifiedAt DateTime?
+  source     String?
+  createdAt  DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

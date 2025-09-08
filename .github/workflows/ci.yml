@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: smokey_salmons_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Setup test database
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smokey_salmons_test
+      run: |
+        npx prisma migrate deploy
+        npx prisma db seed
+    
+    - name: Build application
+      run: npm run build
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smokey_salmons_test
+        NEXTAUTH_SECRET: test-secret-key-for-ci
+        BRAND_NAME: "Smokey Salmons"
+        BRAND_SLOGAN: "Fresh smoked salmon delivered weekly"
+        EMAIL_FROM: "test@example.com"
+        ADMIN_EMAIL: "admin@example.com"
+        ORDER_CUTOFF_CRON: "0 18 * * 2"
+        TIMEZONE: "Asia/Jerusalem"
+    
+    - name: Start application
+      run: npm start &
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smokey_salmons_test
+        NEXTAUTH_SECRET: test-secret-key-for-ci
+        BRAND_NAME: "Smokey Salmons"
+        BRAND_SLOGAN: "Fresh smoked salmon delivered weekly"
+        EMAIL_FROM: "test@example.com"
+        ADMIN_EMAIL: "admin@example.com"
+        ORDER_CUTOFF_CRON: "0 18 * * 2"
+        TIMEZONE: "Asia/Jerusalem"
+    
+    - name: Wait for application
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3000/api/health; do sleep 2; done'
+    
+    - name: Run E2E tests
+      run: npm run e2e:run
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/smokey_salmons_test
+        NEXTAUTH_SECRET: test-secret-key-for-ci
+        BRAND_NAME: "Smokey Salmons"
+        BRAND_SLOGAN: "Fresh smoked salmon delivered weekly"
+        EMAIL_FROM: "test@example.com"
+        ADMIN_EMAIL: "admin@example.com"
+        ORDER_CUTOFF_CRON: "0 18 * * 2"
+        TIMEZONE: "Asia/Jerusalem"
+    
+    - name: Upload Cypress screenshots
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: cypress/screenshots
