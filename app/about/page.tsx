@@ -32,10 +32,9 @@ export default function AboutPage() {
           </div>
           <div className="bg-gradient-to-br from-salmon-100 to-salmon-200 rounded-2xl p-8 text-center animate-fade-in">
             <div className="text-4xl mb-4">🔥</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">24-Hour Process</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Charcoal‑Fired Smoking</h3>
             <p className="text-gray-700">
-              Each salmon undergoes our signature 24-hour cold smoking process, 
-              ensuring perfect texture and flavor development.
+              Smoked over quality lump charcoal with a variety of wood chunks — as long as it takes to reach perfection.
             </p>
           </div>
         </div>
@@ -94,7 +93,7 @@ export default function AboutPage() {
             <div className="text-center space-y-3">
               <div className="w-12 h-12 bg-salmon-500 rounded-full flex items-center justify-center mx-auto text-xl">3</div>
               <h4 className="font-semibold">Smoking</h4>
-              <p className="text-gray-300 text-sm">24-hour cold smoking process for perfect flavor</p>
+              <p className="text-gray-300 text-sm">Lump charcoal + wood chunks — done when perfect</p>
             </div>
             <div className="text-center space-y-3">
               <div className="w-12 h-12 bg-salmon-500 rounded-full flex items-center justify-center mx-auto text-xl">4</div>

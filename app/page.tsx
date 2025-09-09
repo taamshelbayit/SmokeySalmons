@@ -48,8 +48,8 @@ export default async function HomePage() {
                 <div className="w-12 h-12 bg-gradient-to-br from-salmon-500 to-salmon-600 rounded-xl flex items-center justify-center mx-auto shadow-lg">
                   <span className="text-white text-xl">🔥</span>
                 </div>
-                <h3 className="font-semibold text-gray-900">Slow Smoked</h3>
-                <p className="text-sm text-gray-600">Traditional smoking methods for perfect flavor</p>
+                <h3 className="font-semibold text-gray-900">Charcoal‑Fired Smoking</h3>
+                <p className="text-sm text-gray-600">Quality lump charcoal with select wood chunks</p>
               </div>
               <div className="text-center space-y-2 animate-slide-in" style={{animationDelay: '0.2s'}}>
                 <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto shadow-lg">
@@ -89,8 +89,8 @@ export default async function HomePage() {
               <div className="text-sm text-gray-600">Fresh Guarantee</div>
             </div>
             <div className="space-y-2">
-              <div className="text-2xl font-bold text-salmon-600">24h</div>
-              <div className="text-sm text-gray-600">Smoking Process</div>
+              <div className="text-2xl font-bold text-salmon-600">Charcoal‑Fired</div>
+              <div className="text-sm text-gray-600">Smoked as long as it takes with select wood chunks</div>
             </div>
             <div className="space-y-2">
               <div className="text-2xl font-bold text-salmon-600">500+</div>
