@@ -93,7 +93,7 @@ export default function AboutPage() {
             <div className="text-center space-y-3">
               <div className="w-12 h-12 bg-salmon-500 rounded-full flex items-center justify-center mx-auto text-xl">3</div>
               <h4 className="font-semibold">Smoking</h4>
-              <p className="text-gray-300 text-sm">Lump charcoal + wood chunks — done when perfect</p>
+              <p className="text-gray-300 text-sm">Lump charcoal + a variety of wood chunks — done when perfect</p>
             </div>
             <div className="text-center space-y-3">
               <div className="w-12 h-12 bg-salmon-500 rounded-full flex items-center justify-center mx-auto text-xl">4</div>
