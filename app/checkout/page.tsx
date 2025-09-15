@@ -24,7 +24,7 @@ export default function CheckoutPage() {
 
   const [method, setMethod] = useState<'DELIVERY' | 'PICKUP'>('DELIVERY');
   const [deliverySlot, setDeliverySlot] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('Yad Binyamin');
   const [street, setStreet] = useState('');
   const [apt, setApt] = useState('');
   const [notes, setNotes] = useState('');
@@ -314,34 +314,42 @@ export default function CheckoutPage() {
               )}
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <select value={deliverySlot} onChange={(e)=>setDeliverySlot(e.target.value)} name="deliverySlot" className="form-select" aria-label="Delivery time window">
-                  <option value="">Select Friday delivery window</option>
-                  <option value="09:00-12:00">09:00-12:00</option>
-                  <option value="12:00-15:00">12:00-15:00</option>
-                </select>
                 <div>
-                  <input 
-                    value={city} 
-                    onChange={e=>setCity(e.target.value)} 
-                    name="city" 
-                    placeholder="City" 
-                    className={`form-input ${errors.city ? 'border-red-500' : ''}`} 
-                    aria-label="City" 
-                    disabled={method === 'PICKUP'}
-                  />
-                  {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Window *</label>
+                  <select value={deliverySlot} onChange={(e)=>setDeliverySlot(e.target.value)} name="deliverySlot" className="form-select" aria-label="Delivery time window">
+                    <option value="">Select Friday delivery window</option>
+                    <option value="09:00-12:00">09:00-12:00</option>
+                    <option value="12:00-15:00">12:00-15:00</option>
+                  </select>
                 </div>
-                <div>
-                  <input 
-                    value={street} 
-                    onChange={e=>setStreet(e.target.value)} 
-                    name="street" 
-                    placeholder="Street address" 
-                    className={`form-input ${errors.street ? 'border-red-500' : ''}`} 
-                    aria-label="Street address" 
-                    disabled={method === 'PICKUP'}
-                  />
-                  {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
+                    <select
+                      name="city"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      className="form-select"
+                      disabled={method === 'PICKUP'}
+                      required={method === 'DELIVERY'}
+                    >
+                      <option value="Yad Binyamin">Yad Binyamin</option>
+                      <option value="More to follow" disabled>More to follow</option>
+                    </select>
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                  </div>
+                  <div>
+                    <input 
+                      value={street} 
+                      onChange={e=>setStreet(e.target.value)} 
+                      name="street" 
+                      placeholder="Street address" 
+                      className={`form-input ${errors.street ? 'border-red-500' : ''}`} 
+                      aria-label="Street address" 
+                      disabled={method === 'PICKUP'}
+                    />
+                    {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
+                  </div>
                 </div>
                 <input value={apt} onChange={e=>setApt(e.target.value)} name="apt" placeholder="Apt/Floor/Entrance" className="form-input" aria-label="Apartment, floor, or entrance details" disabled={method === 'PICKUP'} />
                 <textarea value={notes} onChange={e=>setNotes(e.target.value)} name="notes" placeholder="Special delivery instructions" className="form-input resize-none md:col-span-2" rows={3} aria-label="Special delivery instructions" />
