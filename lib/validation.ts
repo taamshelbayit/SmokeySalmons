@@ -10,7 +10,7 @@ export const OrderItemInput = z.object({
 export const OrderInput = z.object({
   name: z.string().min(2),
   phone: z.string().min(5),
-  email: z.string().email().optional().or(z.literal('')),
+  email: z.string().email(),
   city: z.string().optional(),
   street: z.string().optional(),
   apt: z.string().optional(),
@@ -18,7 +18,13 @@ export const OrderInput = z.object({
   method: z.enum(['DELIVERY', 'PICKUP']).default('DELIVERY'),
   deliverySlot: z.string().optional(),
   marketingOptIn: z.boolean().optional(),
+  paymentMethod: z.enum(['BIT', 'PAYBOX', 'CASH']),
   items: z.array(OrderItemInput).min(1),
-});
+}).refine((data) => {
+  if (data.method === 'DELIVERY') {
+    return Boolean(data.city && data.city.trim()) && Boolean(data.street && data.street.trim());
+  }
+  return true;
+}, { message: 'City and street are required for delivery orders', path: ['city'] });
 
 export type OrderInputType = z.infer<typeof OrderInput>;

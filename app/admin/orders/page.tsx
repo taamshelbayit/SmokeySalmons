@@ -22,6 +22,7 @@ export default async function AdminOrdersPage() {
               <th className="py-2 pr-4">Items</th>
               <th className="py-2 pr-4">Total</th>
               <th className="py-2 pr-4">Status</th>
+              <th className="py-2 pr-4">Payment</th>
             </tr>
           </thead>
           <tbody>
@@ -39,6 +40,18 @@ export default async function AdminOrdersPage() {
                 </td>
                 <td className="py-2 pr-4 whitespace-nowrap">₪{Number(o.total).toFixed(2)}</td>
                 <td className="py-2 pr-4">{o.status}</td>
+                <td className="py-2 pr-4">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-600">{(o as any).paymentMethod || '-'}</span>
+                    <span className={`text-xs font-medium ${
+                      (o as any).paymentStatus === 'PAID' ? 'text-green-600' :
+                      (o as any).paymentStatus === 'PENDING' ? 'text-amber-600' :
+                      (o as any).paymentStatus === 'UNPAID' ? 'text-red-600' : 'text-gray-600'
+                    }`}>
+                      {(o as any).paymentStatus || '-'}
+                    </span>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

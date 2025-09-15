@@ -81,6 +81,14 @@ model Order {
   apt           String?
   deliveryNotes String?
 
+  // Fees
+  deliveryFee   Decimal       @default(0)
+
+  // Payment
+  paymentMethod String        @default("CASH")
+  paymentStatus String        @default("UNPAID")
+  paymentExpiresAt DateTime?
+
   items         OrderItem[]
 
   @@index([status, placedAt])
@@ -168,3 +176,4 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+

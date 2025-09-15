@@ -111,9 +111,21 @@ export default async function AdminOrderDetailPage({ params }: { params: { id: s
                 </li>
               ))}
             </ul>
-            <div className="border-t mt-4 pt-4 flex justify-between font-semibold">
-              <span>Total:</span>
-              <span>₪{Number(order.total).toFixed(2)}</span>
+            <div className="border-t mt-4 pt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Subtotal</span>
+                <span>₪{Number(order.subtotal).toFixed(2)}</span>
+              </div>
+              {Number((order as any).deliveryFee || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Delivery fee</span>
+                  <span>₪{Number((order as any).deliveryFee).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-semibold">
+                <span>Total</span>
+                <span>₪{Number(order.total).toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -137,6 +149,29 @@ export default async function AdminOrderDetailPage({ params }: { params: { id: s
                   }`}>
                     {order.status}
                   </span>
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <div className="bg-white border rounded-lg p-4">
+            <h2 className="font-semibold mb-3">Payment</h2>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <dt className="text-gray-600">Method:</dt>
+                <dd>{(order as any).paymentMethod || '-'}</dd>
+              </div>
+              <div className="flex justify-between items-center">
+                <dt className="text-gray-600">Status:</dt>
+                <dd className="flex items-center gap-3">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    (order as any).paymentStatus === 'PAID' ? 'bg-green-100 text-green-800' :
+                    (order as any).paymentStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                    (order as any).paymentStatus === 'UNPAID' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                  }`}>
+                    {(order as any).paymentStatus || '-'}
+                  </span>
+                  <OrderStatusForm orderId={order.id} currentStatus={(order as any).paymentStatus || 'UNPAID'} mode="payment" />
                 </dd>
               </div>
             </dl>
