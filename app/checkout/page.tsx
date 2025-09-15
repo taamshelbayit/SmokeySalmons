@@ -473,18 +473,18 @@ export default function CheckoutPage() {
               </div>
               {!promoApplied && (
                 <div className="pt-2">
-                  <div className="flex gap-2">
+                  <div className="flex w-full items-stretch gap-2">
                     <input
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
                       placeholder="Enter promo code"
-                      className="form-input flex-1 text-sm"
+                      className="form-input flex-1 min-w-0 text-sm"
                       aria-label="Promotion code"
                     />
                     <button
                       type="button"
                       onClick={applyPromo}
-                      className="btn-secondary text-sm px-4"
+                      className="btn-secondary text-sm px-3 py-2 shrink-0"
                       aria-label="Apply promotion code"
                     >
                       Apply
@@ -511,28 +511,7 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {!promoApplied && (
-            <div className="bg-white rounded-xl p-4 shadow-sm">
-              <h3 className="font-medium text-gray-900 mb-3">Promo Code</h3>
-              <div className="flex gap-2">
-                <input
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="Enter promo code"
-                  className="form-input flex-1 text-sm"
-                  aria-label="Promotion code"
-                />
-                <button
-                  type="button"
-                  onClick={applyPromo}
-                  className="btn-secondary text-sm px-4"
-                  aria-label="Apply promotion code"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Removed duplicate Promo Code card; promo input now appears only within Order Summary */}
         </div>
       </div>
     </div>
