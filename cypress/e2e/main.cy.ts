@@ -14,22 +14,26 @@ describe('Smokey Salmons E2E', () => {
         cy.contains('button', 'Add').click();
       });
 
-    // Open cart via hash (CartDrawer listens to #cart)
-    cy.window().then((win) => { win.location.hash = '#cart'; });
-    cy.get('aside[aria-label="Shopping cart"]').should('be.visible');
+    // Open cart and proceed to checkout
+    cy.get('[data-testid="open-cart"]').click();
+    cy.contains('button', 'Proceed to Checkout').click();
 
-    // Fill checkout form and submit
-    cy.get('aside[aria-label="Shopping cart"]').within(() => {
-      cy.get('input[name="name"]').scrollIntoView().type('Test User', { force: true });
-      cy.get('input[name="phone"]').scrollIntoView().type('0500000000', { force: true });
-      cy.get('input[name="email"]').scrollIntoView().type('test@example.com', { force: true });
-      cy.get('select[name="deliverySlot"]').select('09:00-12:00', { force: true });
-      cy.get('input[name="city"]').scrollIntoView().type('Tel Aviv', { force: true });
-      cy.get('input[name="street"]').scrollIntoView().type('Herzl 1', { force: true });
-      cy.get('input[name="apt"]').scrollIntoView().type('3', { force: true });
-      cy.get('textarea[name="notes"]').scrollIntoView().type('Ring the bell', { force: true });
-      cy.contains('button', 'Place Order').scrollIntoView().click({ force: true });
-    });
+    // Step 1: Contact
+    cy.get('input[name="name"]').type('Test User');
+    cy.get('input[name="phone"]').type('0500000000');
+    cy.get('input[name="email"]').type('test@example.com');
+    cy.contains('button', 'Next').click();
+
+    // Step 2: Delivery (use Pickup for simplicity)
+    cy.get('input[value="PICKUP"]').click();
+    cy.contains('button', 'Next').click();
+
+    // Step 3: Payment
+    cy.get('input[value="CASH"]').click();
+    cy.contains('button', 'Next').click();
+
+    // Step 4: Review
+    cy.contains('button', 'Place Order').click();
 
     // Redirect landed
     cy.location('pathname').should('match', /\/order\//);

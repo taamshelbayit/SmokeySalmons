@@ -4,7 +4,7 @@ describe('Admin order status update', () => {
   it('places an order and updates status via admin API', () => {
     cy.viewport(1280, 900);
 
-    // Place an order via UI
+    // Place an order via new checkout flow
     cy.visit('/');
     cy.get('[data-testid="product-card-quarter"]').within(() => {
       cy.get('select[aria-label="Flavor"]').select('Black Pepper');
@@ -12,13 +12,26 @@ describe('Admin order status update', () => {
       cy.contains('button', 'Add').click();
     });
 
-    cy.window().then((win) => { win.location.hash = '#cart'; });
-    cy.get('aside[aria-label="Shopping cart"]').should('be.visible').within(() => {
-      cy.get('input[name="name"]').type('Status Test', { force: true });
-      cy.get('input[name="phone"]').type('0502222222', { force: true });
-      cy.get('select[name="deliverySlot"]').select('09:00-12:00', { force: true });
-      cy.contains('button', 'Place Order').click({ force: true });
-    });
+    // Proceed to checkout
+    cy.get('[data-testid="open-cart"]').click();
+    cy.contains('button', 'Proceed to Checkout').click();
+
+    // Step 1: Contact
+    cy.get('input[name="name"]').type('Status Test');
+    cy.get('input[name="phone"]').type('0502222222');
+    cy.get('input[name="email"]').type('status@example.com');
+    cy.contains('button', 'Next').click();
+
+    // Step 2: Pickup for simplicity
+    cy.get('input[value="PICKUP"]').click();
+    cy.contains('button', 'Next').click();
+
+    // Step 3: Payment
+    cy.get('input[value="CASH"]').click();
+    cy.contains('button', 'Next').click();
+
+    // Step 4: Review
+    cy.contains('button', 'Place Order').click();
 
     // Extract order id from URL /order/[id]
     cy.location('pathname').should('match', /\/order\//).then((path) => {

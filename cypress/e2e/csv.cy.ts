@@ -15,14 +15,27 @@ describe('CSV export', () => {
       cy.contains('button', 'Add').click();
     });
 
-    // Open cart via hash and submit
-    cy.window().then((win) => { win.location.hash = '#cart'; });
-    cy.get('aside[aria-label="Shopping cart"]').should('be.visible').within(() => {
-      cy.get('input[name="name"]').type('CSV Test User', { force: true });
-      cy.get('input[name="phone"]').type('0501111111', { force: true });
-      cy.get('select[name="deliverySlot"]').select('09:00-12:00', { force: true });
-      cy.contains('button', 'Place Order').click({ force: true });
-    });
+    // Proceed to checkout
+    cy.get('[data-testid="open-cart"]').click();
+    cy.contains('button', 'Proceed to Checkout').click();
+
+    // Step 1: Contact
+    cy.get('input[name="name"]').type('CSV Test User');
+    cy.get('input[name="phone"]').type('0501111111');
+    cy.get('input[name="email"]').type('csv@example.com');
+    cy.contains('button', 'Next').click();
+
+    // Step 2: Delivery - use pickup for simplicity
+    cy.get('input[value="PICKUP"]').click();
+    cy.get('select[name="deliverySlot"]').select('09:00-12:00');
+    cy.contains('button', 'Next').click();
+
+    // Step 3: Payment
+    cy.get('input[value="CASH"]').click();
+    cy.contains('button', 'Next').click();
+
+    // Step 4: Review
+    cy.contains('button', 'Place Order').click();
 
     // Confirm page and extract order code
     cy.location('pathname').should('match', /\/order\//);

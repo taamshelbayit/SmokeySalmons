@@ -25,6 +25,13 @@ export const OrderInput = z.object({
     return Boolean(data.city && data.city.trim()) && Boolean(data.street && data.street.trim());
   }
   return true;
-}, { message: 'City and street are required for delivery orders', path: ['city'] });
+}, { message: 'City and street are required for delivery orders', path: ['city'] })
+.refine((data) => {
+  if (data.method === 'DELIVERY' && data.city) {
+    const cityLower = data.city.trim().toLowerCase();
+    return cityLower === 'yad binyamin';
+  }
+  return true;
+}, { message: 'Delivery is only available in Yad Binyamin', path: ['city'] });
 
 export type OrderInputType = z.infer<typeof OrderInput>;

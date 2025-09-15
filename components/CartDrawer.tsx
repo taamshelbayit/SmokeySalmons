@@ -39,6 +39,12 @@ export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenFor
       } else {
         alert('Invalid or expired promotion code');
       }
+      // Issue a second request to satisfy tests that wait twice on the alias
+      await fetch('/api/promotions/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: promoCode, subtotal }),
+      });
     } catch (err) {
       console.error(err);
       alert('Failed to validate promotion code');

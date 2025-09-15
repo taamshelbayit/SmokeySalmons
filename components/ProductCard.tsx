@@ -89,6 +89,7 @@ export default function ProductCard({ product }: { product: { key: string; name:
               track({ name: 'add_to_cart', item }); 
             }} 
             className="btn-salmon flex-2 inline-flex items-center justify-center gap-2 min-w-[120px]"
+            data-testid="add-to-cart"
           >
             <ShoppingCart size={16} /> 
             Add to Cart

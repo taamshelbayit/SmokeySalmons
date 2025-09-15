@@ -12,6 +12,8 @@
     "prisma:generate": "prisma generate",
     "db:seed": "prisma db seed",
     "test": "echo 'Add tests' && exit 0",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
     "e2e:open": "cypress open",
     "e2e:run": "cypress run --browser electron --spec cypress/e2e/main.cy.ts"
   },
