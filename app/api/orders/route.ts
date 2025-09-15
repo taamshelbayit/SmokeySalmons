@@ -6,7 +6,7 @@ import { generateOrderCode } from '@/lib/order';
 import { sendOrderConfirmation, sendAdminNewOrder } from '@/lib/email';
 import { ADMIN_EMAIL, BIT_PHONE, PAYBOX_PHONE, PAYMENT_TIMEOUT_MINUTES } from '@/lib/config';
 import { logServerEvent } from '@/lib/analytics';
-import type { PaymentMethod, PaymentStatus } from '@prisma/client';
+// Using string literals for payment types (SQLite does not support enums)
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     const data = parsed.data as any;
 
     // Price items
-    const priced = priceItems(data.items.map(i => ({ key: i.key, flavor: i.flavor, qty: i.qty })));
+    const priced = priceItems((data.items as Array<{ key: string; flavor?: string; qty: number }>).map((i) => ({ key: i.key, flavor: i.flavor, qty: i.qty })));
     const sub = calcSubtotal(priced);
 
     // Map to products
@@ -34,10 +34,20 @@ export async function POST(req: NextRequest) {
     const isYadBinyamin = cityLower === 'yad binyamin';
     const isDelivery = data.method === 'DELIVERY';
     const deliveryFee = isDelivery && isYadBinyamin ? 20 : 0;
+    
+    // Debug logging
+    console.log('Delivery fee calculation:', {
+      method: data.method,
+      city: data.city,
+      cityLower,
+      isDelivery,
+      isYadBinyamin,
+      deliveryFee
+    });
 
     // Payment status and expiry
-    const paymentMethod = (data.paymentMethod as PaymentMethod);
-    const paymentStatus: PaymentStatus = paymentMethod === 'CASH' ? 'UNPAID' : 'PENDING';
+    const paymentMethod = (data.paymentMethod as 'BIT' | 'PAYBOX' | 'CASH');
+    const paymentStatus: 'UNPAID' | 'PENDING' | 'PAID' | 'REFUNDED' = paymentMethod === 'CASH' ? 'UNPAID' : 'PENDING';
     const now = new Date();
     const paymentExpiresAt = (paymentMethod === 'BIT' || paymentMethod === 'PAYBOX')
       ? new Date(now.getTime() + PAYMENT_TIMEOUT_MINUTES * 60 * 1000)

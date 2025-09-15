@@ -13,9 +13,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { code, subtotal } = ValidateSchema.parse(body);
 
-    const promotion = await prisma.promotion.findFirst({
+    const promos = await prisma.promotion.findMany({
       where: {
-        code: { equals: code, mode: 'insensitive' },
         active: true,
         OR: [
           { endsAt: null },
@@ -23,6 +22,7 @@ export async function POST(req: NextRequest) {
         ]
       }
     });
+    const promotion = promos.find(p => p.code.toLowerCase() === code.toLowerCase());
 
     if (!promotion) {
       return NextResponse.json({ valid: false, message: 'Invalid or expired promotion code' });

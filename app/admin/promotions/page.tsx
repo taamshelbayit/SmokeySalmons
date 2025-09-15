@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminPromotionsPage() {
   const promotions = await prisma.promotion.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: { code: 'asc' },
   });
 
   return (
@@ -24,9 +24,9 @@ export default async function AdminPromotionsPage() {
               <th className="py-2 pr-4">Code</th>
               <th className="py-2 pr-4">Type</th>
               <th className="py-2 pr-4">Value</th>
-              <th className="py-2 pr-4">Min Order</th>
               <th className="py-2 pr-4">Status</th>
-              <th className="py-2 pr-4">Valid Until</th>
+              <th className="py-2 pr-4">Starts</th>
+              <th className="py-2 pr-4">Ends</th>
               <th className="py-2 pr-4">Actions</th>
             </tr>
           </thead>
@@ -39,18 +39,14 @@ export default async function AdminPromotionsPage() {
                   {p.type === 'PERCENTAGE' ? `${p.value}%` : `₪${p.value}`}
                 </td>
                 <td className="py-2 pr-4">
-                  {p.minOrderAmount ? `₪${Number(p.minOrderAmount)}` : '—'}
-                </td>
-                <td className="py-2 pr-4">
                   <span className={`px-2 py-1 rounded text-xs ${
                     p.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
                     {p.active ? 'Active' : 'Inactive'}
                   </span>
                 </td>
-                <td className="py-2 pr-4">
-                  {p.validUntil ? new Date(p.validUntil).toLocaleDateString() : '—'}
-                </td>
+                <td className="py-2 pr-4">{p.startsAt ? new Date(p.startsAt).toLocaleDateString() : '—'}</td>
+                <td className="py-2 pr-4">{p.endsAt ? new Date(p.endsAt).toLocaleDateString() : '—'}</td>
                 <td className="py-2 pr-4">
                   <Link href={`/admin/promotions/${p.id}`} className="text-blue-600 underline">
                     Edit

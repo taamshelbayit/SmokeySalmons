@@ -85,8 +85,8 @@ model Order {
   deliveryFee   Decimal       @default(0)
 
   // Payment
-  paymentMethod PaymentMethod @default(CASH)
-  paymentStatus PaymentStatus @default(UNPAID)
+  paymentMethod String        @default("CASH")
+  paymentStatus String        @default("UNPAID")
   paymentExpiresAt DateTime?
 
   items         OrderItem[]
@@ -177,15 +177,3 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-enum PaymentMethod {
-  BIT
-  PAYBOX
-  CASH
-}
-
-enum PaymentStatus {
-  UNPAID
-  PENDING
-  PAID
-  REFUNDED
-}
