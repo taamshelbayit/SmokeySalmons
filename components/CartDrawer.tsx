@@ -1,8 +1,11 @@
 "use client";
+
 import { useEffect, useState } from 'react';
 import { useCart } from './cart-state';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
+const BIT_PHONE = process.env.NEXT_PUBLIC_BIT_PHONE || '';
+const PAYBOX_PHONE = process.env.NEXT_PUBLIC_PAYBOX_PHONE || '';
 
 export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenForOrders: boolean; cutoffLabel: string }) {
   const [open, setOpen] = useState(false);
@@ -12,7 +15,12 @@ export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenFor
   const { items, remove, clear } = useCart();
   const router = useRouter();
   const subtotal = items.reduce((sum, i) => sum + i.qty * i.price, 0);
-  const total = promoApplied ? subtotal - promoApplied.discount : subtotal;
+  const [method, setMethod] = useState<'DELIVERY' | 'PICKUP'>('DELIVERY');
+  const [paymentMethod, setPaymentMethod] = useState<null | 'BIT' | 'PAYBOX' | 'CASH'>(null);
+  const [city, setCity] = useState('');
+  const [street, setStreet] = useState('');
+  const fee = method === 'DELIVERY' && city.trim().toLowerCase() === 'yad binyamin' ? 20 : 0;
+  const total = (promoApplied ? subtotal - promoApplied.discount : subtotal) + fee;
 
   useEffect(() => {
     const check = () => {
@@ -31,14 +39,15 @@ export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenFor
       name: String(form.get('name') || ''),
       phone: String(form.get('phone') || ''),
       email: String(form.get('email') || ''),
-      city: String(form.get('city') || ''),
-      street: String(form.get('street') || ''),
+      city,
+      street,
       apt: String(form.get('apt') || ''),
       notes: String(form.get('notes') || ''),
-      method: 'DELIVERY' as const,
+      method,
       deliverySlot: String(form.get('deliverySlot') || ''),
       marketingOptIn: Boolean(form.get('marketingOptIn')),
       promotionCode: promoApplied?.code || undefined,
+      paymentMethod,
       items: items.map(i => ({ key: i.key, name: i.name, flavor: i.flavor, qty: i.qty })),
     };
     try {
@@ -243,9 +252,48 @@ export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenFor
               </div>
             )}
             
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <h4 className="font-medium text-gray-900 mb-3">Payment Method</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3">
+                  <input type="radio" name="paymentMethod" value="CASH" checked={paymentMethod==='CASH'} onChange={() => setPaymentMethod('CASH')} />
+                  <span>Cash</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input type="radio" name="paymentMethod" value="BIT" checked={paymentMethod==='BIT'} onChange={() => setPaymentMethod('BIT')} />
+                  <span>Bit</span>
+                </label>
+                <label className="flex items-center gap-3">
+                  <input type="radio" name="paymentMethod" value="PAYBOX" checked={paymentMethod==='PAYBOX'} onChange={() => setPaymentMethod('PAYBOX')} />
+                  <span>PayBox</span>
+                </label>
+              </div>
+              {(paymentMethod==='BIT' && BIT_PHONE) && (
+                <div className="mt-3 text-xs text-gray-700 bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
+                  <div>After placing your order, send ₪{total} via Bit to <span className="font-medium">{BIT_PHONE}</span>.</div>
+                  <div>Memo: your name or order code.</div>
+                  <div className="flex gap-2">
+                    <button type="button" className="btn-secondary !text-xs" onClick={()=>navigator.clipboard?.writeText(BIT_PHONE)}>Copy phone</button>
+                    <button type="button" className="btn-secondary !text-xs" onClick={()=>navigator.clipboard?.writeText('Order payment')}>Copy memo</button>
+                  </div>
+                </div>
+              )}
+              {(paymentMethod==='PAYBOX' && PAYBOX_PHONE) && (
+                <div className="mt-3 text-xs text-gray-700 bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
+                  <div>After placing your order, send ₪{total} via PayBox to <span className="font-medium">{PAYBOX_PHONE}</span>.</div>
+                  <div>Memo: your name or order code.</div>
+                  <div className="flex gap-2">
+                    <button type="button" className="btn-secondary !text-xs" onClick={()=>navigator.clipboard?.writeText(PAYBOX_PHONE)}>Copy phone</button>
+                    <button type="button" className="btn-secondary !text-xs" onClick={()=>navigator.clipboard?.writeText('Order payment')}>Copy memo</button>
+                  </div>
+                </div>
+              )}
+              {!paymentMethod && <p className="mt-2 text-xs text-red-600">Please select a payment method.</p>}
+            </div>
+
             <div className="space-y-3">
               <button 
-                disabled={items.length === 0 || loading} 
+                disabled={items.length === 0 || loading || !paymentMethod} 
                 type="submit" 
                 className="w-full btn-salmon text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" 
                 tabIndex={9}
@@ -256,7 +304,7 @@ export default function CartDrawer({ isOpenForOrders, cutoffLabel }: { isOpenFor
                     Placing Order...
                   </div>
                 ) : (
-                  `Place Order - ₪${total} (Pay on Delivery)`
+                  `Place Order - ₪${total}`
                 )}
               </button>
               <button 

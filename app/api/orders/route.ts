@@ -4,8 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { priceItems, subtotal as calcSubtotal } from '@/lib/pricing';
 import { generateOrderCode } from '@/lib/order';
 import { sendOrderConfirmation, sendAdminNewOrder } from '@/lib/email';
-import { ADMIN_EMAIL } from '@/lib/config';
+import { ADMIN_EMAIL, BIT_PHONE, PAYBOX_PHONE, PAYMENT_TIMEOUT_MINUTES } from '@/lib/config';
 import { logServerEvent } from '@/lib/analytics';
+import type { PaymentMethod, PaymentStatus } from '@prisma/client';
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
-    const data = parsed.data;
+    const data = parsed.data as any;
 
     // Price items
     const priced = priceItems(data.items.map(i => ({ key: i.key, flavor: i.flavor, qty: i.qty })));
@@ -28,12 +29,29 @@ export async function POST(req: NextRequest) {
 
     const code = generateOrderCode();
 
+    // Delivery fee rules
+    const cityLower = (data.city || '').trim().toLowerCase();
+    const isYadBinyamin = cityLower === 'yad binyamin';
+    const isDelivery = data.method === 'DELIVERY';
+    const deliveryFee = isDelivery && isYadBinyamin ? 20 : 0;
+
+    // Payment status and expiry
+    const paymentMethod = (data.paymentMethod as PaymentMethod);
+    const paymentStatus: PaymentStatus = paymentMethod === 'CASH' ? 'UNPAID' : 'PENDING';
+    const now = new Date();
+    const paymentExpiresAt = (paymentMethod === 'BIT' || paymentMethod === 'PAYBOX')
+      ? new Date(now.getTime() + PAYMENT_TIMEOUT_MINUTES * 60 * 1000)
+      : null;
+
     const order = await prisma.order.create({
       data: {
         code,
+        status: 'PENDING',
         method: data.method,
         subtotal: sub.toFixed(2),
-        total: sub.toFixed(2),
+        discount: '0',
+        total: (sub + deliveryFee).toFixed(2),
+        deliveryFee: deliveryFee.toFixed(2),
         contactName: data.name,
         contactPhone: data.phone,
         contactEmail: data.email || null,
@@ -42,6 +60,9 @@ export async function POST(req: NextRequest) {
         apt: data.apt || null,
         deliveryNotes: data.notes || null,
         deliverySlot: data.deliverySlot || null,
+        paymentMethod,
+        paymentStatus,
+        paymentExpiresAt,
         items: {
           create: priced.map(pi => ({
             productId: productBySlug[pi.key]?.id,
@@ -56,16 +77,35 @@ export async function POST(req: NextRequest) {
     });
 
     // Send confirmation email if provided
-    const summary = order.items
-      .map((i: { product: { name: string }; flavor: { name: string } | null; quantity: number }) => `${i.product.name}${i.flavor ? ` (${i.flavor.name})` : ''} × ${i.quantity}`)
-      .join('\n');
+    const summaryLines = order.items
+      .map((i: { product: { name: string }; flavor: { name: string } | null; quantity: number }) => `${i.product.name}${i.flavor ? ` (${i.flavor.name})` : ''} × ${i.quantity}`);
+    const summary = [
+      ...summaryLines,
+      `Subtotal: ₪${Number(order.subtotal).toFixed(2)}`,
+      ...(Number(order.deliveryFee) > 0 ? [`Delivery fee: ₪${Number(order.deliveryFee).toFixed(2)}`] : []),
+      `Total: ₪${Number(order.total).toFixed(2)}`,
+    ].join('\n');
+
+    const paymentLines: string[] = [`Payment method: ${order.paymentMethod}`];
+    if (order.paymentMethod === 'BIT' && BIT_PHONE) {
+      paymentLines.push(`Send ₪${Number(order.total).toFixed(2)} via Bit to ${BIT_PHONE}`);
+      paymentLines.push(`Memo: Order ${order.code}`);
+      if (order.paymentExpiresAt) paymentLines.push(`Pay by: ${new Date(order.paymentExpiresAt).toLocaleString()}`);
+    } else if (order.paymentMethod === 'PAYBOX' && PAYBOX_PHONE) {
+      paymentLines.push(`Send ₪${Number(order.total).toFixed(2)} via PayBox to ${PAYBOX_PHONE}`);
+      paymentLines.push(`Memo: Order ${order.code}`);
+      if (order.paymentExpiresAt) paymentLines.push(`Pay by: ${new Date(order.paymentExpiresAt).toLocaleString()}`);
+    } else if (order.paymentMethod === 'CASH') {
+      paymentLines.push('Pay cash on delivery.');
+    }
+
     if (order.contactEmail) {
-      await sendOrderConfirmation({ to: order.contactEmail, orderCode: order.code, summary });
+      await sendOrderConfirmation({ to: order.contactEmail, orderCode: order.code, summary: `${summary}\n\n${paymentLines.join('\n')}` });
     }
 
     // Admin alert
     if (ADMIN_EMAIL) {
-      await sendAdminNewOrder({ to: ADMIN_EMAIL, orderCode: order.code, customer: order.contactName, phone: order.contactPhone, summary });
+      await sendAdminNewOrder({ to: ADMIN_EMAIL, orderCode: order.code, customer: order.contactName, phone: order.contactPhone, summary: summaryLines.join('\n') });
     }
 
     // Server analytics

@@ -12,7 +12,16 @@ const ORDER_STATUSES = [
   'CANCELLED'
 ] as const;
 
-export default function OrderStatusForm({ orderId, currentStatus }: { orderId: string; currentStatus: string }) {
+const PAYMENT_STATUSES = [
+  'UNPAID',
+  'PENDING',
+  'PAID',
+  'REFUNDED',
+] as const;
+
+type Mode = 'order' | 'payment';
+
+export default function OrderStatusForm({ orderId, currentStatus, mode = 'order' }: { orderId: string; currentStatus: string; mode?: Mode }) {
   const [status, setStatus] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -26,7 +35,7 @@ export default function OrderStatusForm({ orderId, currentStatus }: { orderId: s
       const res = await fetch(`/api/admin/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify(mode === 'payment' ? { paymentStatus: status } : { status }),
       });
       
       if (!res.ok) throw new Error('Failed to update status');
@@ -47,7 +56,7 @@ export default function OrderStatusForm({ orderId, currentStatus }: { orderId: s
         className="border rounded px-3 py-1 text-sm"
         disabled={loading}
       >
-        {ORDER_STATUSES.map((s) => (
+        {(mode === 'payment' ? PAYMENT_STATUSES : ORDER_STATUSES).map((s) => (
           <option key={s} value={s}>{s}</option>
         ))}
       </select>

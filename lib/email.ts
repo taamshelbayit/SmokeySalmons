@@ -77,6 +77,39 @@ export async function sendAdminNewOrder(params: {
   console.log('Admin Email (dev)\n', info.message?.toString());
 }
 
+export async function sendPaymentConfirmation(params: {
+  to?: string | null;
+  orderCode: string;
+  totalILS: number;
+  method: string;
+}) {
+  const subject = `${BRAND_NAME} payment received for ${params.orderCode}`;
+  const lines = [
+    `Amount: ₪${params.totalILS.toFixed(2)}`,
+    `Method: ${params.method}`,
+  ];
+  const text = `Payment received for order ${params.orderCode}.\n\n${lines.join('\n')}`;
+  const html = basicHtmlTemplate({
+    title: `Payment received for ${params.orderCode}`,
+    intro: `Thank you! We confirmed your payment.`,
+    lines,
+  });
+
+  if (RESEND_API_KEY) {
+    const { Resend } = await import('resend');
+    const resend = new Resend(RESEND_API_KEY);
+    try {
+      await resend.emails.send({ from: EMAIL_FROM, to: params.to || EMAIL_FROM, subject, text, html });
+    } catch (e) {
+      console.error('Resend payment send failed', e);
+    }
+    return;
+  }
+  const transporter = nodemailer.createTransport({ streamTransport: true, newline: 'unix', buffer: true });
+  const info = await transporter.sendMail({ from: EMAIL_FROM, to: params.to || EMAIL_FROM, subject, text, html });
+  console.log('Payment Email (dev)\n', info.message?.toString());
+}
+
 function basicHtmlTemplate({ title, intro, lines }: { title: string; intro: string; lines: string[] }) {
   return `<!doctype html>
   <html>

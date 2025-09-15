@@ -9,4 +9,10 @@ export const EMAIL_FROM = process.env.EMAIL_FROM || 'orders@localhost';
 export const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 
+export const BIT_PHONE = process.env.BIT_PHONE || '';
+export const PAYBOX_PHONE = process.env.PAYBOX_PHONE || '';
+export const NEXT_PUBLIC_BIT_PHONE = process.env.NEXT_PUBLIC_BIT_PHONE || '';
+export const NEXT_PUBLIC_PAYBOX_PHONE = process.env.NEXT_PUBLIC_PAYBOX_PHONE || '';
+export const PAYMENT_TIMEOUT_MINUTES = Number(process.env.PAYMENT_TIMEOUT_MINUTES || '60');
+
 export const IS_DEV = process.env.NODE_ENV !== 'production';
